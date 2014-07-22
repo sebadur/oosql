@@ -1,0 +1,49 @@
+					DEUTSCH DEUTSCH DEUTSCH
+
+oosql: Eine objektorientierte Schnittstelle für MySQL in PHP von Sebastian Badur
+Das Projekt ist noch nicht fertig. Bitte die Lizenz beachten.
+
+
+INSTALLATION:
+ 1. Datenbank einrichten und die beiliegende Tabelle [oosql.sql] importieren
+ 2. Eine Datei [geheim.php] erstellen und darin die Variablen
+    $host = IP-Adresse der Datenbank (etwa localhost);
+    $nutzer = Name eines Benutzers der Datenbank;
+    $pw = dessen Passwort;
+    $dbname = Name der Datenbank;
+
+
+VERWENDUNG:
+ Die Attribute der Klassen werden über die Datenbank definiert. Einfach dort die gewünschten Attribute und deren Namen anlegen, wobei jede
+ Tabelle in der Datenbank für eine Klasse in PHP steht und alle deren Instanzen besitzt. Dabei MUSS jede Klasse das Attribut `index` als
+ Primärschlüssel besitzen. Genauso wie in PHP können Variablen auch beliebigen Typs, insbesondere Instanzen ANDERER KLASSEN sein, dafür das
+ entsprechende Attribut als [VARCHAR] mit einem Schlüssel versehen. Ansonsten keine weiteren Schlüssel vergeben.
+
+
+
+
+
+
+					ENGLISH ENGLISH ENGLISH
+
+oosql: An object orientated interface for MySQL written in PHP by Sebastian Badur
+The project is not finished yet. Please notice the license (lizenz).
+The license is written in German and also applies for German law, similar to the BSD-2 license.
+BEWARE: IF YOU WANT TO USE OR SHARE THIS SOFTWARE YOU HAVE TO ACCEPT AND FULLFILL THAT LICENSE EVEN IF YOU DO NOT UNDERSTAND GERMAN!
+IGNORANCE IS NO EXCUSE by German law.
+
+
+INSTALLATION:
+ 1. Prepare the database and import the enclosed table [oosql.sql]
+ 2. Create a file named [geheim.php] and in it the variables
+    $host = IP-adress of the database (localhost or so);
+    $nutzer = name of a database user;
+    $pw = his password;
+    $dbname = name of the database;
+
+
+UTILIZATION:
+ The attributes of the classes will be defined via the database. Just create the desired attribute and its name there, as every table in the
+ database stands for a class in PHP and owns all its instances. Though every class MUST have an attribute `index` as its primary key. Just as
+ in PHP variables can be of any type, particulary being instances of OTHER CLASSES, therefore append the appropriate attribute as a [VARCHAR]
+ with a normal key. Apart from that don't assign further keys.
