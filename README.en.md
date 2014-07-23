@@ -1,3 +1,5 @@
+*(deutsche Version)[README.md]*
+
 Extension oosql
 ===============
 
@@ -33,8 +35,11 @@ The enclosed script [beispiel.php](beispiel.php) is a demonstrative application 
   - $pw = his passwors
   - $dbname = name of the database (*beispiel* or so)
  4. Request the sample script
+
 Then you should read:
-	Hallo, mein Name ist Peter und ich arbeite für Dieter.
+
+    Hallo, mein Name ist Peter und ich arbeite für Dieter.
+
 Try to reproduce the working flow of the sample script and also take note of the attached commentaries in it.
 
 Plans for Development

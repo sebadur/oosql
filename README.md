@@ -1,3 +1,5 @@
+*[english version](README.en.md)*
+
 Erweiterung oosql
 =================
 
@@ -34,8 +36,11 @@ Mit dem Skript [beispiel.php](beispiel.php) liegt eine demonstrative Anwendung v
   - $pw = dessen Passwort
   - $dbname = Name der Datenbank (etwa *beispiel*)
  4. Das Beispielskript aufrufen
+
 Die Ausgabe sollte dann lauten:
-	Hallo, mein Name ist Peter und ich arbeite für Dieter.
+
+    Hallo, mein Name ist Peter und ich arbeite für Dieter.
+
 Versuchen Sie die Arbeitsweise des Beispielskriptes nachzuvollziehen und nehmen Sie auch die darin vermerkten Kommentare zur Kenntnis.
 
 Pläne für die Entwicklung
