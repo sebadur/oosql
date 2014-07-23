@@ -2,6 +2,8 @@
 include 'dbclass.php';
 
 class oosql extends mysqli {
+	private $instanzen = array();
+
 	public final function query($query) { # Debug
 		echo $query.'<br>';
 		return parent::query($query);
@@ -22,7 +24,8 @@ class oosql extends mysqli {
 	 * @param type $bedingung Auswahlkriterien in SQL-Sytax, optional.
 	 * @return boolean|array Genau dann FALSE, falls entweder die Parameter falsch angegeben wurden, oder falls sie für die Datenbank keinen Sinn
 	 * ergeben haben. Ansonsten ein Feld mit den ausgewählten Objekten in richtiger Reihenfolge (so, wie man sie durch eine normale Anfrage mit
-	 * den gleichen Auswahlkriterien bekommen würde).
+	 * den gleichen Auswahlkriterien bekommen würde). Von einem Objekt wird während der gesamten Laufzeit nur eine Instanz zurückgegeben; Kopien
+	 * müssen manuell angefertigt werden.
 	 */
 	public final function select($klasse, $bedingung='') {
 		# Fehleingaben abfangen
@@ -47,9 +50,25 @@ class oosql extends mysqli {
 			# Alle Attribute belegen
 			$erg = array();
 			while ($einObjekt = $alleObjekte->fetch_assoc()) {
+				if ($einObjekt === NULL) {
+					continue; # Sicherheitsabfrage, da ansonsten gleich ein neues Objekt in der Datenbank erzeugt würde
+				}
 				$dbklasse = class_exists($klasse) ? $klasse : 'dbclass';
 				$obj = new $dbklasse($this, $klasse, $einObjekt, $indikator);
-				array_push($erg, $obj);
+				
+				# Instanzenfeld initialisieren
+				if (!isset($this->instanzen[$klasse])) {
+					$this->instanzen[$klasse] = array();
+				}
+
+				# Objekt für Rückgabe abspeichern
+				if (isset($this->instanzen[$klasse][$obj->index])) { # Dieses Objekt gibt es schon
+					array_push($erg, &$this->instanzen[$klasse][$obj->index]);
+					unset($obj);
+				} else { # Dieses Objekt ist neu
+					array_push($erg, $obj);
+					$this->instanzen[$klasse][$obj->index] = &$obj;
+				}
 			}
 
 		}

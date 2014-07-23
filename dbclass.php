@@ -15,17 +15,16 @@ class dbclass {
 			$this->att = $att;
 			$this->indikator = $indikator;
 		} else {
-			$bezeichner = array_keys($att);
+			$bezeichner = array_keys($this->att);
 			foreach($bezeichner as $name) {
 				$namen .= '`,`'.addslashes($name);
-				$werte .= '\',\''.addslashes($att[$name]);
+				$werte .= '\',\''.addslashes($this->att[$name]);
 			}
 			$this->oosql->query('INSERT INTO `'.$this->klasse.'` ('.substr($namen, 2).') VALUES ('.substr($werte, 2).')');
 		}
 	}
 
 	public function __set($name, $wert) {
-		$this->att[$name] = $wert;
 		if ($this->indikator[$name] == TRUE) {
 			$this->indikator[$name] = 2;
 		} else {
@@ -36,6 +35,7 @@ class dbclass {
 				? addslashes((string) $wert)
 				: addslashes($wert->klasse).' '.intval($wert->index)
 			).'\' WHERE `index`='.intval($this->index));
+		$this->att[$name] = $wert;
 	}
 
 	public function __get($name) {
