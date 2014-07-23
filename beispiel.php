@@ -15,6 +15,7 @@ class person extends dbclass {
 	public function vorstellen() {
 		echo 'Hallo, mein Name ist '.$this->name;
 		if (isset($this->arbeitgeber)) {
+			# Es können alle Attribute in beliebiger Tiefe erreicht werden. Referenzen werden wenn nötig implizit durch DB-Anfragen aufgelöst
 			echo ' und ich bin arbeite f&uuml;r '.$this->arbeitgeber->name;
 		}
 		echo '.';

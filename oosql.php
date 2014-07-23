@@ -4,10 +4,10 @@ include 'dbclass.php';
 class oosql extends mysqli {
 	private $instanzen = array();
 
-	public final function query($query) { # Debug
+/*	public final function query($query) { # Debug
 		echo $query.'<br>';
 		return parent::query($query);
-	}
+	}*/
 
 	public function __construct() {
 		call_user_func_array('parent::__construct', func_get_args());
