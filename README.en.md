@@ -50,11 +50,6 @@ Plans for Development
 - Identify possible problems of deficient process synchronization (due from the user)
 - Strengthen the documentation
 
- soll zukünftig darüber entscheiden können, wann Änderungen an den Objekten in die Datenbank übernommen werden, um die
-Netzwerkbelastung zu reduzieren.
-- Analyse und Auswertung von Laufzeitparametern, umfassender Test der Funktionalität
-- Mögliche Probleme mangelnder Prozesssynchronisation (seitens des Anwenders) erkennen
-
 License
 -------
 
