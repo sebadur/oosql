@@ -1,5 +1,5 @@
-oosql
-=====
+Extension oosql
+===============
 
 An object orientated interface for MySQL written in PHP. With this it is possible to save objects of own classes in your database and load them
 as instances of these. **Real instances of the classes. Without helping constructs.**
@@ -25,16 +25,16 @@ Sample application
 ------------------
 
 The enclosed script [beispiel.php](beispiel.php) is a demonstrative application of oosql. It will be usable after a few steps:
-1. Prepare a database
-2. Import the table [beispiel.sql](beispiel.sql)
-3. Create a file *geheim.php*, and therein the variables
- - $host = IP-adress of the databse (*localhost* or so)
- - $nutzer = name of a database user
- - $pw = his passwors
- - $dbname = name of the database (*beispiel* or so)
-4. Request the sample script
+ 1. Prepare a database
+ 2. Import the table [beispiel.sql](beispiel.sql)
+ 3. Create a file *geheim.php*, and therein the variables
+  - $host = IP-adress of the databse (*localhost* or so)
+  - $nutzer = name of a database user
+  - $pw = his passwors
+  - $dbname = name of the database (*beispiel* or so)
+ 4. Request the sample script
 Then you should read:
-    Hallo, mein Name ist Peter und ich arbeite für Dieter.
+	Hallo, mein Name ist Peter und ich arbeite für Dieter.
 Try to reproduce the working flow of the sample script and also take note of the attached commentaries in it.
 
 Plans for Development

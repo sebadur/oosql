@@ -1,5 +1,5 @@
-oosql
-=====
+Erweiterung oosql
+=================
 
 Eine objektorientierte Schnittstelle für MySQL in PHP. Damit ist es möglich, Objekte eigener Klassen in der Datenbank zu speichern und als solche
 wieder zu laden. **Echte Instanzen der Klassen. Ohne Hilfskonstrukte.**
@@ -26,16 +26,16 @@ Beispielanwendung
 -----------------
 
 Mit dem Skript [beispiel.php](beispiel.php) liegt eine demonstrative Anwendung von oosql bei. Es lässt sich nach wenigen Schritten ausführen:
-1. Eine Datenbank einrichten
-2. Die Tabelle [beispiel.sql](beispiel.sql) importieren
-3. Eine Datei *geheim.php* erstellen, und darin die Variablen
- - $host = IP-Adresse der Datenbank (etwa *localhost*)
- - $nutzer = Name eines Benutzers der Datenbank
- - $pw = dessen Passwort
- - $dbname = Name der Datenbank (etwa *beispiel*)
-4. Das Beispielskript aufrufen
+ 1. Eine Datenbank einrichten
+ 2. Die Tabelle [beispiel.sql](beispiel.sql) importieren
+ 3. Eine Datei *geheim.php* erstellen, und darin die Variablen
+  - $host = IP-Adresse der Datenbank (etwa *localhost*)
+  - $nutzer = Name eines Benutzers der Datenbank
+  - $pw = dessen Passwort
+  - $dbname = Name der Datenbank (etwa *beispiel*)
+ 4. Das Beispielskript aufrufen
 Die Ausgabe sollte dann lauten:
-    Hallo, mein Name ist Peter und ich arbeite für Dieter.
+	Hallo, mein Name ist Peter und ich arbeite für Dieter.
 Versuchen Sie die Arbeitsweise des Beispielskriptes nachzuvollziehen und nehmen Sie auch die darin vermerkten Kommentare zur Kenntnis.
 
 Pläne für die Entwicklung
