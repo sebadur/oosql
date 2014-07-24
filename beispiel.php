@@ -24,7 +24,7 @@ class person extends dbclass {
 
 # Verbinden mit der Datenbank wie von [mysqli] gewohnt, nur über die Erweiterung [oosql]
 include_once 'geheim.php';
-$datenbank = new oosql($host, $nuter, $pw, $dbname);
+$datenbank = new oosql($host, $nutzer, $pw, $dbname);
 
 # Die Datenbank wird aus guten Gründen weiterhin relational abstrahiert, deshalb muss zunächst ein Ankerobjekt angefordert werden
 $peter = $datenbank->select('person', 'WHERE `name`=\'Peter\'')[0];

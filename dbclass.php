@@ -8,6 +8,12 @@ class dbclass {
 	public $klasse;
 	private $oosql, $att = array(), $indikator = NULL;
 
+	/**
+	 * Konstruiert ein neues Datenbankobjekt.
+	 * @param oosql $oosql Der Datenbankadapter.
+	 * @param string $klasse Der Klassenname dieses neuen Objektes.
+	 * Und weitere interne Parameter, die nicht übergeben werden sollten.
+	 */
 	public function __construct($oosql, $klasse, $att = NULL, $indikator = array()) {
 		$this->oosql = $oosql;
 		$this->klasse = $klasse;
@@ -16,7 +22,7 @@ class dbclass {
 			$this->indikator = $indikator;
 		} else {
 			$bezeichner = array_keys($this->att);
-			foreach($bezeichner as $name) {
+			foreach ($bezeichner as $name) {
 				$namen .= '`,`'.addslashes($name);
 				$werte .= '\',\''.addslashes($this->att[$name]);
 			}
@@ -30,16 +36,18 @@ class dbclass {
 		} else {
 			assert('!is_subclass_of($wert, \'dbclass\')', "Die Datenbank lässt für $this->klasse->$name keine Referenz zu.");
 		}
-		$this->oosql->query('UPDATE `'.addslashes($this->klasse).'` SET `'.addslashes($name).'`=\''.(
-			$this->indikator[$name] != 2
-				? addslashes((string) $wert)
-				: addslashes($wert->klasse).' '.intval($wert->index)
-			).'\' WHERE `index`='.intval($this->index));
+		if ($this->oosql->sync) {
+			$this->oosql->query('UPDATE `'.addslashes($this->klasse).'` SET `'.addslashes($name).'`=\''.(
+				$this->indikator[$name] != 2
+					? addslashes((string) $wert)
+					: addslashes($wert->klasse).' '.intval($wert->index)
+				).'\' WHERE `index`='.intval($this->index));
+		}
 		$this->att[$name] = $wert;
 	}
 
 	public function __get($name) {
-		if ($this->indikator[$name] == TRUE) {
+		if ($this->indikator[$name] === TRUE) {
 			$id = explode(' ', $this->att[$name]);
 			$this->att[$name] = $this->oosql->select(addslashes($id[0]), 'WHERE `index`='.intval($id[1]))[0];
 		}
@@ -61,6 +69,19 @@ class dbclass {
 	 * @return boolean Wahr genau dann, wenn der Vorgang erfolgreich verlaufen ist.
 	 */
 	public final function remove() {
-		$this->oosql->query('REMOVE FROM `'.addslashes($this->klasse).'` WHERE `index`='.intval($this->index));
+		return $this->oosql->query('REMOVE FROM `'.addslashes($this->klasse).'` WHERE `index`='.intval($this->index));
+	}
+
+	/**
+	 * Speichert dieses Objekt in die Datenbank.
+	 * Die in der Datenbank vorhandene Kopie wird dabei verworfen. Funktioniert auch, wenn $sync wahr ist, obwohl redundant.
+	 * @return boolean Wahr genau dann, wenn der Vorgang erfolgreich verlaufen ist.
+	 */
+	public final function save() {
+		$bezeichner = array_keys($this->att);
+		foreach ($bezeichner as $name) {
+			$werte .= '`,`'.addslashes($name).'\'=\''.addslashes($this->att[$name]).'\'';
+		}
+		$this->oosql->query('UPDATE `'.  addslashes($this->klasse).'` SET '.substr($werte, 2).' WHERE `index`='.intval($this->index));
 	}
 }
