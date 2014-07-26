@@ -1,5 +1,6 @@
 <?php # Urheber dieser Datei ist Sebastian Badur. Die beiliegende Lizenz muss gewahrt bleiben.
-include 'dbclass.php';
+include_once 'dbclass.php';
+include_once 'dbarray.php';
 
 class oosql extends mysqli {
 	private $instanzen = array();
@@ -39,26 +40,33 @@ class oosql extends mysqli {
 			return FALSE;
 		}
 
-		$erg = FALSE;
 		# Ausgewählte Objekte holen
 		$alleObjekte = $this->query('SELECT * FROM `'.$klasse.'` '.$bedingung);
-		if ($alleObjekte !== FALSE) {
+		if ($alleObjekte === FALSE) {
+			return FALSE;
+		}
 
-			# Auf höheres Objekt prüfen
-			$indikator = array();
-			$alleBeschr = $this->query('DESCRIBE `'.$klasse.'`');
-			if ($alleBeschr !== FALSE) {
-				while ($eineBeschr = $alleBeschr->fetch_assoc()) {
-					$indikator[$eineBeschr['Field']] = $eineBeschr['Key']==='MUL';
-				}
-			}
+		$erg = array();
+		if (!is_subclass_of($klasse, 'dbarray')) {
 
 			# Alle Attribute belegen
-			$erg = array();
 			while ($einObjekt = $alleObjekte->fetch_assoc()) {
 				if ($einObjekt === NULL) {
 					continue; # Sicherheitsabfrage, da ansonsten gleich ein neues Objekt in der Datenbank erzeugt würde
 				}
+
+				# Indikator extrahieren und umwandeln
+				$indikator = array();
+				$ref = intval($einObjekt['ref']);
+				unset($einObjekt['ref']);
+				$namen = array_keys($einObjekt);
+				foreach (reverse_array($namen) as $name) { # Gegenläufig zu dbtrait::ref()
+					if ($name !== 'index') { # Der Index kann keine Referenz sein
+						$indikator[$name] = $ref & 1;
+						$ref >>= 1;
+					}
+				}
+
 				$dbklasse = class_exists($klasse) ? $klasse : 'dbclass';
 				$obj = new $dbklasse($this, $klasse, $einObjekt, $indikator);
 				
@@ -77,6 +85,26 @@ class oosql extends mysqli {
 				}
 			}
 
+		} else {
+			$nIndex = -1;
+			$indizes = array();
+			$feld = array();
+			$indikator = array();
+
+			while ($eintrag = $alleObjekte->fetch_assoc()) {
+				if (!isset($indizes[$eintrag['index']])) {
+					$nIndex++;
+					$indizes[$eintrag['index']] = $nIndex;
+					$feld[$nIndex] = array();
+					$indikator[$nIndex] = array();
+
+					$dbarray = new $klasse($this, $feld[$nIndex], $eintrag['index'], $indikator[$nIndex]);
+					array_push($erg, $dbarray);
+				}
+				$feld[$indizes[$eintrag['index']]][$eintrag['id']] = $eintrag['wert'];
+				# Der Indikator wird hier nur für das Attribut `wert` benötigt, muss also nicht aufgearbeitet werden
+				$indikator[$indizes[$eintrag['index']]][$eintrag['id']] = $eintrag['ref'];
+			}
 		}
 
 		return $erg;

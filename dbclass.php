@@ -1,10 +1,49 @@
 <?php # Urheber dieser Datei ist Sebastian Badur. Die beiliegende Lizenz muss gewahrt bleiben.
 
 /**
- * ...
+ * Instanzen, welche von dieser Klasse erben können über die oosql-Erweiterung direkt in die Datenbank gespeichert und von dort auch wieder
+ * geladen werden, ohne sie manuell konvertieren zu müssen.
  * Muss das Attribut `index` als Primärschlüssel in der DB verwenden.
  */
 class dbclass {
+	use dbtrait;
+
+	public function __set($name, $wert) {
+		$neuerTyp = FALSE;
+		if (is_subclass_of($wert, 'dbclass', FALSE)) {
+			if (!$this->indikator) {
+				$neuerTyp = TRUE;
+			}
+			$this->indikator[$name] = 2;
+		} else if ($this->indikator) {
+			$neuerTyp = TRUE;
+			$this->indikator[$name] = FALSE;
+		}
+
+		if ($this->oosql->sync) {
+			$this->oosql->query('UPDATE `'.addslashes($this->klasse).'` SET `'.addslashes($name).'`=\''.$this->nachSQL($wert).'\''.(
+					$neuerTyp ? ', `ref`=\''.$this->ref($this->indikator).'\'' : ''
+				).' WHERE `index`='.intval($this->index));
+		}
+		$this->att[$name] = $wert;
+	}
+
+	public function __get($name) {
+		$this->evalObj($this->oosql, $this->att[$name], $this->indikator[$name]);
+		return $this->att[$name];
+	}
+
+	public function __isset($name) {
+		return isset($this->att[$name]);
+	}
+
+	public function __unset($name) {
+		unset($this->att[$name]);
+		$this->oosql->query('UPDATE `'.addslashes($this->klasse).'` SET '.addslashes($name).'=DEFAULT WHERE `index`='.intval($this->index));
+	}
+}
+
+trait dbtrait {
 	public $klasse;
 	private $oosql, $att = array(), $indikator = NULL;
 
@@ -24,42 +63,10 @@ class dbclass {
 			$bezeichner = array_keys($this->att);
 			foreach ($bezeichner as $name) {
 				$namen .= '`,`'.addslashes($name);
-				$werte .= '\',\''.addslashes($this->att[$name]);
+				$werte .= '\',\''.$this->nachSQL($this->att[$name]);
 			}
-			$this->oosql->query('INSERT INTO `'.$this->klasse.'` ('.substr($namen, 2).') VALUES ('.substr($werte, 2).')');
+			$this->oosql->query('INSERT INTO `'.addslashes($this->klasse).'` ('.substr($namen, 2).') VALUES ('.substr($werte, 2).')');
 		}
-	}
-
-	public function __set($name, $wert) {
-		if ($this->indikator[$name] == TRUE) {
-			$this->indikator[$name] = 2;
-		} else {
-			assert('!is_subclass_of($wert, \'dbclass\')', "Die Datenbank lässt für $this->klasse->$name keine Referenz zu.");
-		}
-		if ($this->oosql->sync) {
-			$this->oosql->query('UPDATE `'.addslashes($this->klasse).'` SET `'.addslashes($name).'`=\''.(
-				$this->indikator[$name] != 2
-					? addslashes((string) $wert)
-					: addslashes($wert->klasse).' '.intval($wert->index)
-				).'\' WHERE `index`='.intval($this->index));
-		}
-		$this->att[$name] = $wert;
-	}
-
-	public function __get($name) {
-		if ($this->indikator[$name] === TRUE) {
-			$id = explode(' ', $this->att[$name]);
-			$this->att[$name] = $this->oosql->select(addslashes($id[0]), 'WHERE `index`='.intval($id[1]))[0];
-		}
-		return $this->att[$name];
-	}
-
-	public function __isset($name) {
-		return isset($this->att[$name]);
-	}
-
-	public function __unset($name) {
-		unset($this->att[$name]);
 	}
 
 
@@ -80,8 +87,36 @@ class dbclass {
 	public final function save() {
 		$bezeichner = array_keys($this->att);
 		foreach ($bezeichner as $name) {
-			$werte .= '`,`'.addslashes($name).'\'=\''.addslashes($this->att[$name]).'\'';
+			$werte .= addslashes($name).'`=\''.addslashes($this->att[$name]).'\',';
 		}
-		$this->oosql->query('UPDATE `'.  addslashes($this->klasse).'` SET '.substr($werte, 2).' WHERE `index`='.intval($this->index));
+		# Hier ist nicht mehr bekannt, welche Attribute verändert wurden, deshalb wird der Indikator einfach neu bestimmt und überschrieben
+		$werte .= '`ref`='.$this->ref($this->indikator);
+		$this->oosql->query('UPDATE `'.addslashes($this->klasse)."` SET $werte WHERE `index`=".intval($this->index));
+	}
+
+	private final function nachSQL($wert) { # Zerlegt ein Objekt in seine Referenz
+		if (is_subclass_of($wert, 'dbclass', FALSE)) {
+			return addslashes($wert->klasse).' '.intval($wert->index);
+		} else {
+			return addslashes((string) $wert);
+		}
+	}
+
+	private final function evalObj($oosql, &$wert, $indikator) { # Wenn der Wert eine Referenz ist, dann wird diese aufgelöst
+		if ($indikator === TRUE) {
+			$id = explode(' ', $wert);
+			$wert = $oosql->select(addslashes($id[0]), 'WHERE `index`='.intval($id[1]))[0];
+		}
+	}
+
+	private final function ref($indikator) {
+		$ref = 0;
+		foreach ($indikator as $bool) {
+			if ($bool) {
+				$ref++;
+			}
+			$ref <<= 1;
+		}
+		return $ref;
 	}
 }
