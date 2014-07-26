@@ -13,12 +13,12 @@ class person extends dbclass {
 	 * Der Programmiervorgang ist somit für Objektorientierung trivial.
 	 */
 	public function vorstellen() {
-		echo 'Hallo, mein Name ist '.$this->name;
-		if (isset($this->arbeitgeber)) {
+		echo 'Hallo, mein Name ist '.$this->name.'.';
+		if (isset($this->kujnden)) {
 			# Es können alle Attribute in beliebiger Tiefe erreicht werden. Referenzen werden wenn nötig implizit durch DB-Anfragen aufgelöst
-			echo ' und ich bin arbeite f&uuml;r '.$this->arbeitgeber->name;
+			echo ' '.$this->kunden->name.' sind meine Kunden.';
 		}
-		echo '.';
+		echo '<br>';
 	}
 }
 
@@ -31,3 +31,8 @@ $peter = $datenbank->select('person', 'WHERE `name`=\'Peter\'')[0];
 
 # Peter liegt schon jetzt als Objekt der Klasse [person] vor
 $peter->vorstellen();
+
+$peter->kunden = new dbarray($datenbank, array(
+	'A' => $datenbank->select('person', 'WHERE `name`=\'Werner\'')[0],
+	2 => $datenbank->select('person', 'WHERE `name`=\'Dieter\'')[0]
+));

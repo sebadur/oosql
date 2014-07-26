@@ -7,36 +7,61 @@
 class dbarray extends ArrayObject {
 	use dbtrait;
 
-	private $index;
+	public $index;
 
-	public function __construct($oosql, $feld, $index = NULL, $indikator = array()) {
-		dbtrait::__construct($oosql, 'dbarray', $feld, $indikator);
+	public function __construct(oosql $oosql, array $feld, $index = NULL, $indikator = array()) {
 		parent::__construct($feld);
-		$this->index = $index;
+		$this->construct($oosql, 'dbarray', $indikator);
+		if (!isset($index)) {
+
+			# Jetzt müssen alle Einträge des neuen Feldes zunächst einmal angelegt werden
+			$sql = NULL;
+			$ids = array_keys($feld);
+			foreach ($ids as $id) {
+				$ist_dbklasse = $this->ist_dbklasse($feld[$id]);
+				if (!isset($this->index)) {
+					$this->oosql->query('INSERT INTO `dbarray` (`id`, `wert`, `ref`) VALUES (\''.addslashes($id).'\', \''.
+						$this->nachSQL($feld[$id], $ist_dbklasse)."', $ist_dbklasse)");
+					$this->index = $this->oosql->insert_id;
+				} else {
+					# Nachdem der Index bestimmt wurde, sind die restlichen Spalten mit nur einer Anfrage speicherbar
+					$sql .= "INSERT INTO `dbarray` (`index`, `id`, `wert`, `ref`) VALUES ($this->index, '".addslashes($id).'\', \''.
+						$this->nachSQL($feld[$id], $ist_dbklasse)."', $ist_dbklasse); ";
+				}
+			}
+			if (isset($sql)) {
+				$this->oosql->query($sql);
+			}
+
+		} else {
+			$this->index = $index;
+		}
 	}
 
 	public function offsetSet($id, $wert) {
-		if (isset($this[$wert])) {
-			$this->oosql->query('UPDATE `dbarray` SET `wert`=\'\''.$this->where($id));
+		$ist_dbklasse = $this->ist_dbklasse($wert);
+
+		if (parent::offsetGet($id) !== NULL) {
+			$this->oosql->query('UPDATE `dbarray` SET `wert`=\''.$this->nachSQL($wert, $ist_dbklasse).'\''.(
+					($this->indikator[$id]?TRUE:FALSE) ^ $ist_dbklasse ? ", `ref`=$ist_dbklasse" : ''
+				).$this->where($id));
 		} else {
-			if ($this->index !== NULL) {
-				$this->oosql->query('INSERT INTO `dbarray` (`index`, `id`, `wert`) VALUES ('.intval($this->index).', \''.addslashes($id)
-					.'\', \''.addslashes($wert).'\')');
-			} else {
-				$this->oosql->query('INSERT INTO `dbarray` (`id`, `wert`) VALUES ('.addslashes($id).'\', \''.addslashes($wert).'\')');
-				$this->index = $this->oosql->query('SELECT LAST_INSERT_ID()');
-			}
+			$this->oosql->query('INSERT INTO `dbarray` (`index`, `id`, `wert`, `ref`) VALUES ('.intval($this->index).', \''.addslashes($id).
+				'\', \''.$this->nachSQL($wert, $ist_dbklasse)."', $ist_dbklasse)");
 		}
+
+		$this->indikator[$id] = $ist_dbklasse ? 2 : FALSE;
 		parent::offsetSet($id, $wert);
 	}
 
 	public function offsetGet($id) {
-		$this->evalObj($this->oosql, $this[$id], $this->indikator[$id]);
-		return $this[$id] ?: NULL;
+		$obj = parent::offsetGet($id);
+		$this->evalObj($this->oosql, $obj, $this->indikator[$id]);
+		return $obj ?: NULL;
 	}
 
 	public function offsetUnset($id) {
-		if (isset($this[$id])) {
+		if (parent::offsetGet($id) !== NULL) {
 			$this->oosql->query('DELETE FROM `dbarray`'.where($id));
 		}
 		parent::offsetUnset($id);

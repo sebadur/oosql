@@ -1,4 +1,5 @@
 <?php # Urheber dieser Datei ist Sebastian Badur. Die beiliegende Lizenz muss gewahrt bleiben.
+include_once 'dbtrait.php';
 include_once 'dbclass.php';
 include_once 'dbarray.php';
 
@@ -9,12 +10,12 @@ class oosql extends mysqli {
 	 * Wenn wahr, dann wird jede Änderung an diesem Objekt unmittelbar in die Datenbank übernommen. Wenn dieses Verhalten nicht erwünscht ist
 	 * (weil dadurch die Netzwerkbelastung steigt), dann kann das Objekt mit der Funktion save() manuell abgespeichert werden.
 	 */
-	public $snyc = TRUE;
+	public $sync = TRUE;
 
-/*	public final function query($query) { # Debug
+	public final function query($query) { # Debug
 		echo $query.'<br>';
 		return parent::query($query);
-	}*/
+	}
 
 	public function __construct() {
 		call_user_func_array('parent::__construct', func_get_args());
@@ -60,9 +61,9 @@ class oosql extends mysqli {
 				$ref = intval($einObjekt['ref']);
 				unset($einObjekt['ref']);
 				$namen = array_keys($einObjekt);
-				foreach (reverse_array($namen) as $name) { # Gegenläufig zu dbtrait::ref()
+				foreach (array_reverse($namen) as $name) { # Gegenläufig zu dbtrait::ref()
 					if ($name !== 'index') { # Der Index kann keine Referenz sein
-						$indikator[$name] = $ref & 1;
+						$indikator[$name] = (boolean) ($ref & 1);
 						$ref >>= 1;
 					}
 				}
