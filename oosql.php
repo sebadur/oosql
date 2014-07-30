@@ -3,7 +3,7 @@ include_once 'dbtrait.php';
 include_once 'dbclass.php';
 include_once 'dbarray.php';
 
-class oosql extends mysqli {
+class OOSQL extends mysqli {
 	private $instanzen = array();
 
 	/**
@@ -12,10 +12,10 @@ class oosql extends mysqli {
 	 */
 	public $sync = TRUE;
 
-	public final function query($query) { # Debug
+	/*public final function query($query) { # Debug
 		echo $query.'<br>';
 		return parent::query($query);
-	}
+	}*/
 
 	public function __construct() {
 		call_user_func_array('parent::__construct', func_get_args());
@@ -48,7 +48,7 @@ class oosql extends mysqli {
 		}
 
 		$erg = array();
-		if (!is_subclass_of($klasse, 'dbarray')) {
+		if (!is_a($klasse, 'DBArray', TRUE)) {
 
 			# Alle Attribute belegen
 			while ($einObjekt = $alleObjekte->fetch_assoc()) {
@@ -68,7 +68,7 @@ class oosql extends mysqli {
 					}
 				}
 
-				$dbklasse = class_exists($klasse) ? $klasse : 'dbclass';
+				$dbklasse = class_exists($klasse) ? $klasse : 'DBClass';
 				$obj = new $dbklasse($this, $klasse, $einObjekt, $indikator);
 				
 				# Instanzenfeld initialisieren
@@ -88,23 +88,26 @@ class oosql extends mysqli {
 
 		} else {
 			$nIndex = -1;
-			$indizes = array();
+			$indizes = array(); # Index des Objekts => Index für $feld und $indikator
 			$feld = array();
 			$indikator = array();
 
 			while ($eintrag = $alleObjekte->fetch_assoc()) {
-				if (!isset($indizes[$eintrag['index']])) {
+				$index = $eintrag['index'];
+				if (!isset($indizes[$index])) {
 					$nIndex++;
-					$indizes[$eintrag['index']] = $nIndex;
+					$indizes[$index] = $nIndex;
 					$feld[$nIndex] = array();
 					$indikator[$nIndex] = array();
-
-					$dbarray = new $klasse($this, $feld[$nIndex], $eintrag['index'], $indikator[$nIndex]);
-					array_push($erg, $dbarray);
 				}
-				$feld[$indizes[$eintrag['index']]][$eintrag['id']] = $eintrag['wert'];
+				$feld[$indizes[$index]][$eintrag['id']] = $eintrag['wert'];
 				# Der Indikator wird hier nur für das Attribut `wert` benötigt, muss also nicht aufgearbeitet werden
-				$indikator[$indizes[$eintrag['index']]][$eintrag['id']] = $eintrag['ref'];
+				$indikator[$indizes[$index]][$eintrag['id']] = boolval($eintrag['ref']);
+			}
+
+			foreach ($indizes as $index => $n) {
+				$dbarray = new $klasse($this, $feld[$n], $index, $indikator[$n]);
+				array_push($erg, $dbarray);
 			}
 		}
 

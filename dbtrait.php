@@ -3,7 +3,7 @@
 /**
  * Interner Trait für alle DB-Klassen.
  */
-trait dbtrait {
+trait DBTrait {
 	public $klasse;
 	private $oosql, $att = array(), $indikator;
 
@@ -40,7 +40,7 @@ trait dbtrait {
 
 
 	private final function ist_dbklasse($objekt, $erlaube_string = FALSE) {
-		return is_a($objekt, 'dbclass', $erlaube_string) || is_a($objekt, 'dbarray', $erlaube_string);
+		return is_a($objekt, 'DBClass', $erlaube_string) || is_a($objekt, 'DBArray', $erlaube_string);
 	}
 
 	private final function nachSQL($wert, $ist_dbklasse = NULL) { # Zerlegt ein Objekt in seine Referenz

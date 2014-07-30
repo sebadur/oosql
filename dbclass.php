@@ -5,8 +5,8 @@
  * geladen werden, ohne sie manuell konvertieren zu müssen.
  * Muss das Attribut `index` als Primärschlüssel in der DB verwenden.
  */
-class dbclass {
-	use dbtrait;
+class DBClass {
+	use DBTrait;
 
 	/**
 	 * Konstruiert ein neues Datenbankobjekt.
