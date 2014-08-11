@@ -15,6 +15,10 @@ class OOSQL extends mysqli {
 	/*public final function query($query) { # Debug
 		echo $query.'<br>';
 		return parent::query($query);
+	}
+	public final function multi_query($query) {
+		echo $query.'<br>';
+		return parent::multi_query($query);
 	}*/
 
 	public function __construct() {
@@ -42,7 +46,7 @@ class OOSQL extends mysqli {
 		}
 
 		# Ausgewählte Objekte holen
-		$alleObjekte = $this->query('SELECT * FROM `'.$klasse.'` '.$bedingung);
+		$alleObjekte = $this->query('SELECT * FROM '.$klasse.' '.$bedingung);
 		if ($alleObjekte === FALSE) {
 			return FALSE;
 		}
@@ -62,14 +66,14 @@ class OOSQL extends mysqli {
 				unset($einObjekt['ref']);
 				$namen = array_keys($einObjekt);
 				foreach (array_reverse($namen) as $name) { # Gegenläufig zu dbtrait::ref()
-					if ($name !== 'index') { # Der Index kann keine Referenz sein
+					if ($name !== 'id') { # Der Index kann keine Referenz sein
 						$indikator[$name] = (boolean) ($ref & 1);
 						$ref >>= 1;
 					}
 				}
 
 				$dbklasse = class_exists($klasse) ? $klasse : 'DBClass';
-				$obj = new $dbklasse($this, $klasse, $einObjekt, $indikator);
+				$obj = new $dbklasse($this, $einObjekt, $indikator);
 				
 				# Instanzenfeld initialisieren
 				if (!isset($this->instanzen[$klasse])) {
@@ -77,12 +81,12 @@ class OOSQL extends mysqli {
 				}
 
 				# Objekt für Rückgabe abspeichern
-				if (isset($this->instanzen[$klasse][$obj->index])) { # Dieses Objekt gibt es schon
-					array_push($erg, $this->instanzen[$klasse][$obj->index]);
+				if (isset($this->instanzen[$klasse][$obj->id])) { # Dieses Objekt gibt es schon
+					array_push($erg, $this->instanzen[$klasse][$obj->id]);
 					unset($obj);
 				} else { # Dieses Objekt ist neu
 					array_push($erg, $obj);
-					$this->instanzen[$klasse][$obj->index] = &$obj;
+					$this->instanzen[$klasse][$obj->id] = &$obj;
 				}
 			}
 
@@ -93,20 +97,20 @@ class OOSQL extends mysqli {
 			$indikator = array();
 
 			while ($eintrag = $alleObjekte->fetch_assoc()) {
-				$index = $eintrag['index'];
-				if (!isset($indizes[$index])) {
+				$id = $eintrag['id'];
+				if (!isset($indizes[$id])) {
 					$nIndex++;
-					$indizes[$index] = $nIndex;
+					$indizes[$id] = $nIndex;
 					$feld[$nIndex] = array();
 					$indikator[$nIndex] = array();
 				}
-				$feld[$indizes[$index]][$eintrag['id']] = $eintrag['wert'];
-				# Der Indikator wird hier nur für das Attribut `wert` benötigt, muss also nicht aufgearbeitet werden
-				$indikator[$indizes[$index]][$eintrag['id']] = boolval($eintrag['ref']);
+				$feld[$indizes[$id]][$eintrag['ndx']] = $eintrag['wert'];
+				# Der Indikator wird hier nur für das Attribut wert benötigt, muss also nicht aufgearbeitet werden
+				$indikator[$indizes[$id]][$eintrag['ndx']] = boolval($eintrag['ref']);
 			}
 
-			foreach ($indizes as $index => $n) {
-				$dbarray = new $klasse($this, $feld[$n], $index, $indikator[$n]);
+			foreach ($indizes as $id => $n) {
+				$dbarray = new $klasse($this, $feld[$n], $id, $indikator[$n]);
 				array_push($erg, $dbarray);
 			}
 		}

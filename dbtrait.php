@@ -20,7 +20,7 @@ trait DBTrait {
 	 * @return boolean Wahr genau dann, wenn der Vorgang erfolgreich verlaufen ist.
 	 */
 	public final function remove() {
-		return $this->oosql->query('REMOVE FROM `'.addslashes($this->klasse).'` WHERE `index`='.intval($this->index));
+		return $this->oosql->query('REMOVE FROM '.addslashes($this->klasse).' WHERE id='.intval($this->id));
 	}
 
 	/**
@@ -31,11 +31,11 @@ trait DBTrait {
 	public final function save() {
 		$bezeichner = array_keys($this->att);
 		foreach ($bezeichner as $name) {
-			$werte .= addslashes($name).'`=\''.addslashes($this->att[$name]).'\',';
+			$werte .= addslashes($name).'=\''.addslashes($this->att[$name]).'\',';
 		}
 		# Hier ist nicht mehr bekannt, welche Attribute verändert wurden, deshalb wird der Indikator einfach neu bestimmt und überschrieben
-		$werte .= '`ref`='.$this->ref($this->indikator);
-		$this->oosql->query('UPDATE `'.addslashes($this->klasse)."` SET $werte WHERE `index`=".intval($this->index));
+		$werte .= 'ref='.$this->ref($this->indikator);
+		$this->oosql->query('UPDATE '.addslashes($this->klasse)." SET $werte WHERE id=".intval($this->id));
 	}
 
 
@@ -43,20 +43,28 @@ trait DBTrait {
 		return is_a($objekt, 'DBClass', $erlaube_string) || is_a($objekt, 'DBArray', $erlaube_string);
 	}
 
-	private final function nachSQL($wert, $ist_dbklasse = NULL) { # Zerlegt ein Objekt in seine Referenz
+	private final function nachSQL($wert, $ist_dbklasse = NULL) { # Zerlegt ein Objekt (kein [array]) in seine Referenz
 		$ist_dbklasse = $ist_dbklasse ?: $this->ist_dbklasse($wert);
 		if ($ist_dbklasse) {
-			return addslashes($wert->klasse).' '.intval($wert->index);
-		} else {
+			return addslashes($wert->klasse).' '.intval($wert->id);
+		} else if (is_scalar($wert)) {
 			return addslashes((string) $wert);
+		} else {
+			return 'DEFAULT';
 		}
 	}
 
 	private final function evalObj($oosql, &$wert, &$indikator) { # Wenn der Wert eine Referenz ist, dann wird diese aufgelöst
 		if ($indikator === TRUE) {
 			$id = explode(' ', $wert);
-			$wert = $oosql->select(addslashes($id[0]), 'WHERE `index`='.intval($id[1]))[0];
+			$wert = array_shift($oosql->select(addslashes($id[0]), 'WHERE id='.intval($id[1])));
 			$indikator = 2;
+		}
+	}
+
+	private final function evalFeld(&$wert) { # Konvertiert bei Bedarf das [array] in ein [DBArray]
+		if (is_array($wert)) {
+			$wert = new DBArray($this->oosql, $wert);
 		}
 	}
 
