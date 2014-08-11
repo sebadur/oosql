@@ -32,7 +32,7 @@ Variablen vom Typ `array` sind Attributen einfach zuweisbar. Nach der Zuweisung 
 muss dabei in der Datenbank als Referenz, also `varchar` vorgesehen sein. Alternativ lassen sich auch Objekte der Klasse `DBArray` manuell
 erzeugen, was aber nur nötig ist, wenn sie sofort in der Datenbank abgelegt werden sollen.
 
-Importieren Sie die Tabelle [DBArray](dbarray.sql) in Ihre Datenbank, wenn Sie Felder verwenden möchten.
+Importieren Sie die Tabelle [dbarray.sql](dbarray.sql) in Ihre Datenbank, wenn Sie Felder verwenden möchten.
 
 Beispielanwendung
 -----------------
@@ -49,7 +49,7 @@ Mit dem Skript [beispiel.php](beispiel.php) liegt eine demonstrative Anwendung v
 
 Die Ausgabe sollte dann lauten:
 
-> Hallo, mein Name ist Peter - und Werner und Dieter sind meine Kunden.
+> Hallo, mein Name ist Peter - und Werner und Dieter sind meine Kunden.<br>
 > Hallo, mein Name ist Peter - und Werner und Dieter und Otto sind meine Kunden.
 
 Versuchen Sie die Arbeitsweise des Beispielskriptes nachzuvollziehen und nehmen Sie auch die darin vermerkten Kommentare zur Kenntnis.

@@ -30,7 +30,7 @@ Variables of the type `array` can be easily assigned to attributes. After assign
 particular attribute has to be designed as a reference in the database, thus `varchar`. Alternatively objects of the class `DBArray` can be
 created manually, but that is only necessary, if they have to be deposited to the database immediately.
 
-Import the table [DBArray](dbarray.sql) to your database, if you want to use arrays.
+Import the table [dbarray.sql](dbarray.sql) to your database, if you want to use arrays.
 
 Sample application
 ------------------
@@ -47,7 +47,7 @@ The enclosed script [beispiel.php](beispiel.php) is a demonstrative application 
 
 Then you should read:
 
-> Hallo, mein Name ist Peter - und Werner und Dieter sind meine Kunden.
+> Hallo, mein Name ist Peter - und Werner und Dieter sind meine Kunden.<br>
 > Hallo, mein Name ist Peter - und Werner und Dieter und Otto sind meine Kunden.
 
 Try to reproduce the working flow of the sample script and also take note of the attached commentaries in it.
