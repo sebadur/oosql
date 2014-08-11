@@ -1,56 +1,49 @@
 <?php # Urheber dieser Datei ist Sebastian Badur. Die beiliegende Lizenz muss gewahrt bleiben.
 
 /**
- * ...
- * Muss das Attribut `index` als Primärschlüssel in der DB verwenden.
+ * Instanzen, welche von dieser Klasse erben können über die oosql-Erweiterung direkt in die Datenbank gespeichert und von dort auch wieder
+ * geladen werden, ohne sie manuell konvertieren zu müssen.
+ * Muss das Attribut id als Primärschlüssel in der DB verwenden und ref besitzen.
  */
-class dbclass {
-	public $klasse;
-	private $oosql, $att = array(), $indikator = NULL;
+class DBClass {
+	use DBTrait;
 
 	/**
 	 * Konstruiert ein neues Datenbankobjekt.
-	 * @param oosql $oosql Der Datenbankadapter.
-	 * @param string $klasse Der Klassenname dieses neuen Objektes.
+	 * @param OOSQL $oosql Der Datenbankadapter.
 	 * Und weitere interne Parameter, die nicht übergeben werden sollten.
 	 */
-	public function __construct($oosql, $klasse, $att = NULL, $indikator = array()) {
-		$this->oosql = $oosql;
-		$this->klasse = $klasse;
+	public function __construct(OOSQL $oosql, $att = NULL, $indikator = array()) {
+		$this->construct($oosql, get_class($this), $indikator);
+
 		if ($att !== NULL) {
 			$this->att = $att;
-			$this->indikator = $indikator;
 		} else {
 			$bezeichner = array_keys($this->att);
+			$namen = ''; $werte = '';
 			foreach ($bezeichner as $name) {
-				$namen .= '`,`'.addslashes($name);
-				$werte .= '\',\''.addslashes($this->att[$name]);
+				$namen .= ','.addslashes($name);
+				$this->evalFeld($this->att[$name]);
+				$werte .= '\',\''.$this->nachSQL($this->att[$name]);
 			}
-			$this->oosql->query('INSERT INTO `'.$this->klasse.'` ('.substr($namen, 2).') VALUES ('.substr($werte, 2).')');
+			$this->oosql->query('INSERT INTO '.addslashes($this->klasse).' ('.substr($namen, 2).') VALUES ('.substr($werte, 2).')');
 		}
 	}
 
 	public function __set($name, $wert) {
-		if ($this->indikator[$name] == TRUE) {
-			$this->indikator[$name] = 2;
-		} else {
-			assert('!is_subclass_of($wert, \'dbclass\')', "Die Datenbank lässt für $this->klasse->$name keine Referenz zu.");
-		}
+		$ist_dbklasse = $this->ist_dbklasse($wert);
 		if ($this->oosql->sync) {
-			$this->oosql->query('UPDATE `'.addslashes($this->klasse).'` SET `'.addslashes($name).'`=\''.(
-				$this->indikator[$name] != 2
-					? addslashes((string) $wert)
-					: addslashes($wert->klasse).' '.intval($wert->index)
-				).'\' WHERE `index`='.intval($this->index));
+			$this->oosql->query('UPDATE '.addslashes($this->klasse).' SET '.addslashes($name).'=\''.$this->nachSQL($wert).'\''.(
+					($this->indikator[$name]?TRUE:FALSE) ^ $ist_dbklasse ? ', ref=\''.$this->ref($this->indikator).'\'' : ''
+				).' WHERE id='.intval($this->id));
 		}
+		
+		$this->indikator[$name] = $ist_dbklasse ? 2 : FALSE;
 		$this->att[$name] = $wert;
 	}
 
 	public function __get($name) {
-		if ($this->indikator[$name] === TRUE) {
-			$id = explode(' ', $this->att[$name]);
-			$this->att[$name] = $this->oosql->select(addslashes($id[0]), 'WHERE `index`='.intval($id[1]))[0];
-		}
+		$this->evalObj($this->oosql, $this->att[$name], $this->indikator[$name]);
 		return $this->att[$name];
 	}
 
@@ -60,28 +53,6 @@ class dbclass {
 
 	public function __unset($name) {
 		unset($this->att[$name]);
-	}
-
-
-	/**
-	 * Löscht dieses spezielle Objekt aus der Datenbank.
-	 * Referenzierte Objekte bleiben von dieser Funktion unangetastet, werden also nicht implizit gelöscht.
-	 * @return boolean Wahr genau dann, wenn der Vorgang erfolgreich verlaufen ist.
-	 */
-	public final function remove() {
-		return $this->oosql->query('REMOVE FROM `'.addslashes($this->klasse).'` WHERE `index`='.intval($this->index));
-	}
-
-	/**
-	 * Speichert dieses Objekt in die Datenbank.
-	 * Die in der Datenbank vorhandene Kopie wird dabei verworfen. Funktioniert auch, wenn $sync wahr ist, obwohl redundant.
-	 * @return boolean Wahr genau dann, wenn der Vorgang erfolgreich verlaufen ist.
-	 */
-	public final function save() {
-		$bezeichner = array_keys($this->att);
-		foreach ($bezeichner as $name) {
-			$werte .= '`,`'.addslashes($name).'\'=\''.addslashes($this->att[$name]).'\'';
-		}
-		$this->oosql->query('UPDATE `'.  addslashes($this->klasse).'` SET '.substr($werte, 2).' WHERE `index`='.intval($this->index));
+		$this->oosql->query('UPDATE '.addslashes($this->klasse).' SET '.addslashes($name).'=DEFAULT WHERE id='.intval($this->id));
 	}
 }
